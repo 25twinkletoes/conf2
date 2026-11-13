@@ -3,6 +3,7 @@
 import argparse
 import sys
 
+from src.cargo_fetcher import FetchError, get_direct_dependencies
 from src.config_parser import ConfigError, load_config
 
 
@@ -21,16 +22,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Запускает приложение и выводит параметры конфигурации."""
+    """Запускает приложение и выводит прямые зависимости пакета."""
     args = parse_args(argv)
     try:
         config = load_config(args.config)
-    except ConfigError as err:
-        print(f"Ошибка конфигурации: {err}", file=sys.stderr)
+        pkg_name = str(config["package_name"])
+        repo_url = str(config["repo_url"])
+        version, deps = get_direct_dependencies(repo_url, pkg_name)
+    except (ConfigError, FetchError) as err:
+        print(f"Ошибка: {err}", file=sys.stderr)
         return 1
 
-    for key, value in config.items():
-        print(f"{key}: {value}")
+    print(f"Прямые зависимости пакета '{pkg_name}' (версия {version}):")
+    if not deps:
+        print("Прямые зависимости отсутствуют.")
+        return 0
+
+    for dep in deps:
+        print(f"- {dep['name']} ({dep['req']})")
     return 0
 
 

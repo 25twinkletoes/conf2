@@ -25,7 +25,7 @@ class TestConfigParser(unittest.TestCase):
         csv_data = (
             "key,value\n"
             "package_name,tokio\n"
-            "repo_url,https://github.com/rust-lang/crates.io-index\n"
+            "repo_url,https://index.crates.io\n"
             "test_mode,false\n"
             "output_file,deps.png\n"
         )

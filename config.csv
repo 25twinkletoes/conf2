@@ -1,5 +1,5 @@
 key,value
 package_name,serde
-repo_url,https://github.com/rust-lang/crates.io-index
+repo_url,https://index.crates.io
 test_mode,false
 output_file,graph.png
