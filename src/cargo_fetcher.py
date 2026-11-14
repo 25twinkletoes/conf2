@@ -9,7 +9,7 @@ LEN_TWO = 2
 LEN_THREE = 3
 PREFIX_SPLIT = 2
 REQUEST_TIMEOUT = 15
-USER_AGENT = "dep-visualizer-cli/0.2"
+USER_AGENT = "dep-visualizer-cli/0.3"
 
 
 class FetchError(Exception):
