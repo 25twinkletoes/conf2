@@ -7,6 +7,7 @@ from pathlib import Path
 from src.graph_builder import (
     GraphError,
     build_dependency_graph,
+    compute_load_order,
     parse_test_repository,
 )
 
@@ -48,6 +49,28 @@ class TestGraphBuilder(unittest.TestCase):
         self.assertEqual(set(graph.keys()), {"A", "B", "C", "D"})
         self.assertIn(("C", "A"), cycles)
         self.assertNotIn(("C", "B"), cycles)
+
+    def test_compute_load_order(self) -> None:
+        """Проверка порядка загрузки (сначала зависимости, потом пакет)."""
+        repo = {
+            "A": ["B", "C"],
+            "B": ["D"],
+            "C": ["D"],
+            "D": [],
+        }
+        graph, _ = build_dependency_graph("A", lambda p: repo[p])
+        order = compute_load_order("A", graph)
+        self.assertEqual(order, ["D", "B", "C", "A"])
+
+    def test_compute_load_order_with_cycle(self) -> None:
+        """Проверка корректного порядка загрузки при наличии цикла."""
+        repo = {
+            "A": ["B"],
+            "B": ["A"],
+        }
+        graph, _ = build_dependency_graph("A", lambda p: repo[p])
+        order = compute_load_order("A", graph)
+        self.assertEqual(order, ["B", "A"])
 
 
 if __name__ == "__main__":

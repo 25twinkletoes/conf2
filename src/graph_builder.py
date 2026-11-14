@@ -68,3 +68,25 @@ def build_dependency_graph(
 
     dfs(root_package)
     return graph, cyclic_edges
+
+
+def compute_load_order(
+    root_package: str,
+    graph: dict[str, list[str]],
+) -> list[str]:
+    """Вычисляет порядок загрузки зависимостей (post-order DFS)."""
+    order: list[str] = []
+    visited: set[str] = set()
+    active_path: set[str] = set()
+
+    def dfs(current: str) -> None:
+        visited.add(current)
+        active_path.add(current)
+        for dep in graph.get(current, []):
+            if dep not in active_path and dep not in visited:
+                dfs(dep)
+        active_path.remove(current)
+        order.append(current)
+
+    dfs(root_package)
+    return order

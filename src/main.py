@@ -8,6 +8,7 @@ from src.config_parser import ConfigError, load_config
 from src.graph_builder import (
     GraphError,
     build_dependency_graph,
+    compute_load_order,
     parse_test_repository,
 )
 
@@ -23,12 +24,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="config.csv",
         help="Путь к конфигурационному файлу формата CSV.",
     )
+    parser.add_argument(
+        "--load-order",
+        action="store_true",
+        help="Вывести порядок загрузки зависимостей для заданного пакета.",
+    )
     return parser.parse_args(argv)
 
 
-def _create_provider(
-    repo_url: str, test_mode: bool
-):
+def _create_provider(repo_url: str, test_mode: bool):
     """Создает функцию получения прямых зависимостей для режима работы."""
     if test_mode:
         test_repo = parse_test_repository(repo_url)
@@ -71,8 +75,15 @@ def _print_graph(
         print(f"{pkg} -> {', '.join(formatted)}")
 
 
+def _print_load_order(root: str, order: list[str]) -> None:
+    """Выводит порядок загрузки зависимостей на экран."""
+    print(f"Порядок загрузки зависимостей для пакета '{root}':")
+    for idx, pkg in enumerate(order, start=1):
+        print(f"{idx}. {pkg}")
+
+
 def main(argv: list[str] | None = None) -> int:
-    """Запускает приложение и строит транзитивный граф зависимостей."""
+    """Запускает приложение и выполняет анализ зависимостей."""
     args = parse_args(argv)
     try:
         config = load_config(args.config)
@@ -85,7 +96,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Ошибка: {err}", file=sys.stderr)
         return 1
 
-    _print_graph(pkg_name, graph, cycles)
+    if args.load_order:
+        order = compute_load_order(pkg_name, graph)
+        _print_load_order(pkg_name, order)
+    else:
+        _print_graph(pkg_name, graph, cycles)
     return 0
 
 
