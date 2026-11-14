@@ -93,7 +93,7 @@ class TestConfigParser(unittest.TestCase):
             "package_name,serde\n"
             "repo_url,https://example.com\n"
             "test_mode,false\n"
-            "output_file,graph.exe\n"
+            "output_file,graph.svg\n"
         )
         path = self._write_csv(csv_data)
         with self.assertRaises(ConfigError):

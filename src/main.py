@@ -11,6 +11,11 @@ from src.graph_builder import (
     compute_load_order,
     parse_test_repository,
 )
+from src.visualizer import (
+    VisualizationError,
+    generate_graphviz_dot,
+    render_dot_to_png,
+)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -57,24 +62,6 @@ def _create_provider(repo_url: str, test_mode: bool):
     return fetch_from_cargo
 
 
-def _print_graph(
-    root: str,
-    graph: dict[str, list[str]],
-    cycles: set[tuple[str, str]],
-) -> None:
-    """Выводит построенный транзитивный граф зависимостей на экран."""
-    print(f"Граф зависимостей для пакета '{root}':")
-    for pkg, deps in graph.items():
-        if not deps:
-            print(f"{pkg} -> (нет зависимостей)")
-            continue
-        formatted = [
-            f"{dep} [цикл]" if (pkg, dep) in cycles else dep
-            for dep in deps
-        ]
-        print(f"{pkg} -> {', '.join(formatted)}")
-
-
 def _print_load_order(root: str, order: list[str]) -> None:
     """Выводит порядок загрузки зависимостей на экран."""
     print(f"Порядок загрузки зависимостей для пакета '{root}':")
@@ -83,24 +70,31 @@ def _print_load_order(root: str, order: list[str]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Запускает приложение и выполняет анализ зависимостей."""
+    """Запускает приложение, строит граф и визуализирует его в PNG."""
     args = parse_args(argv)
     try:
         config = load_config(args.config)
         pkg_name = str(config["package_name"])
         repo_url = str(config["repo_url"])
         test_mode = bool(config["test_mode"])
+        output_file = str(config["output_file"])
+
         provider = _create_provider(repo_url, test_mode)
         graph, cycles = build_dependency_graph(pkg_name, provider)
-    except (ConfigError, FetchError, GraphError) as err:
+
+        if args.load_order:
+            order = compute_load_order(pkg_name, graph)
+            _print_load_order(pkg_name, order)
+            return 0
+
+        dot_source = generate_graphviz_dot(pkg_name, graph, cycles)
+        print("Сформированное представление Graphviz:")
+        print(dot_source)
+        render_dot_to_png(dot_source, output_file)
+        print(f"Изображение графа успешно сохранено в файл: {output_file}")
+    except (ConfigError, FetchError, GraphError, VisualizationError) as err:
         print(f"Ошибка: {err}", file=sys.stderr)
         return 1
-
-    if args.load_order:
-        order = compute_load_order(pkg_name, graph)
-        _print_load_order(pkg_name, order)
-    else:
-        _print_graph(pkg_name, graph, cycles)
     return 0
 
 

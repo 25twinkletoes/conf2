@@ -10,7 +10,7 @@ REQUIRED_KEYS = {
     "test_mode",
     "output_file",
 }
-VALID_EXTENSIONS = (".png", ".svg", ".dot", ".gv")
+VALID_EXTENSIONS = (".png",)
 
 
 class ConfigError(Exception):
@@ -30,7 +30,7 @@ def _parse_bool(value: str) -> bool:
 
 
 def _validate_url_or_path(repo_url: str, test_mode: bool) -> None:
-    """Проверяет URL репозитория или путь к тестовому файлу."""
+    """Проверяет URL репозитория"""
     if not repo_url:
         raise ConfigError("Параметр repo_url не может быть пустым.")
 
@@ -49,7 +49,7 @@ def _validate_url_or_path(repo_url: str, test_mode: bool) -> None:
 
 
 def _validate_params(raw_config: dict[str, str]) -> dict[str, object]:
-    """Валидирует значения всех обязательных параметров."""
+    """обязательных параметров."""
     missing = REQUIRED_KEYS - raw_config.keys()
     if missing:
         raise ConfigError(f"Отсутствуют обязательные параметры: {missing}")
@@ -65,7 +65,7 @@ def _validate_params(raw_config: dict[str, str]) -> dict[str, object]:
     out_file = raw_config["output_file"].strip()
     if not out_file or not out_file.lower().endswith(VALID_EXTENSIONS):
         raise ConfigError(
-            f"Некорректное имя выходного файла: '{out_file}'"
+            f"Имя выходного файла должно иметь расширение .png: '{out_file}'"
         )
 
     return {

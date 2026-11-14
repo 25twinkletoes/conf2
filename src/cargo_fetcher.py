@@ -9,7 +9,7 @@ LEN_TWO = 2
 LEN_THREE = 3
 PREFIX_SPLIT = 2
 REQUEST_TIMEOUT = 15
-USER_AGENT = "dep-visualizer-cli/0.4"
+USER_AGENT = "dep-visualizer-cli/0.5"
 
 
 class FetchError(Exception):
@@ -55,7 +55,7 @@ def fetch_raw_metadata(url: str) -> str:
 
 
 def parse_direct_dependencies(raw_lines: str) -> tuple[str, list[dict[str, str]]]:
-    """Извлекает версию и список прямых зависимостей из JSON-строк."""
+    """Извлекает версию и список прямых зависимостей."""
     records = []
     for line in raw_lines.splitlines():
         cleaned = line.strip()
